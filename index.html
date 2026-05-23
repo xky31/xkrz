@@ -18,12 +18,15 @@
         headers: {
           'Content-Type': 'application/json'
         },
+        
         body: JSON.stringify({ content })
       });
 
       const data = await res.json();
       document.getElementById('output').innerText = data.result;
     }
+
+    
   </script>
 </body>
 </html>
