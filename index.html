@@ -1,32 +1,44 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>AI文案生成器</title>
+  <title>反应力测试</title>
 </head>
-<body>
-  <h1>AI文案生成器</h1>
-  <input id="input" placeholder="输入穿搭描述" />
-  <button onclick="send()">生成</button>
-  <p id="output"></p>
+<body style="text-align:center;margin-top:100px;">
 
-  <script>
-    async function send() {
-      const content = document.getElementById('input').value;
+<h1>反应力测试</h1>
+<p>等屏幕变绿后，立刻点击！</p>
 
-      const res = await fetch('/api', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        
-        body: JSON.stringify({ content })
-      });
+<div id="box" style="width:200px;height:200px;background:red;margin:50px auto;"></div>
 
-      const data = await res.json();
-      document.getElementById('output').innerText = data.result;
+<p id="result"></p>
+
+<script>
+  let startTime;
+
+  function startGame() {
+    document.getElementById("box").style.background = "red";
+    document.getElementById("result").innerText = "准备中...";
+
+    let delay = Math.random() * 3000 + 2000;
+
+    setTimeout(() => {
+      document.getElementById("box").style.background = "green";
+      startTime = new Date().getTime();
+    }, delay);
+  }
+
+  document.getElementById("box").onclick = function () {
+    if (this.style.background === "green") {
+      let reactionTime = new Date().getTime() - startTime;
+      document.getElementById("result").innerText = "你的反应时间：" + reactionTime + " ms";
+      startGame();
+    } else {
+      document.getElementById("result").innerText = "太快了！等变绿再点！";
     }
+  };
 
-    
-  </script>
+  startGame();
+</script>
+
 </body>
 </html>
