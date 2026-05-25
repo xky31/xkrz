@@ -1,14 +1,41 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>反应力测试</title>
+  <style>
+    * { -webkit-tap-highlight-color: transparent; }
+    body {
+      text-align: center;
+      margin: 0;
+      padding-top: 50px;
+      font-family: Arial, sans-serif;
+      touch-action: manipulation;
+    }
+    #box {
+      width: 200px;
+      height: 200px;
+      background: red;
+      margin: 50px auto;
+      cursor: pointer;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    @media (max-width: 480px) {
+      #box {
+        width: 80vw;
+        height: 40vh;
+      }
+    }
+  </style>
 </head>
-<body style="text-align:center;margin-top:100px;">
+<body>
 
 <h1>反应力测试</h1>
 <p>等屏幕变绿后，立刻点击！</p>
 
-<div id="box" style="width:200px;height:200px;background:red;margin:50px auto;"></div>
+<div id="box"></div>
 
 <p id="result"></p>
 
@@ -23,19 +50,28 @@
 
     setTimeout(() => {
       document.getElementById("box").style.background = "green";
-      startTime = new Date().getTime();
+      startTime = Date.now();
     }, delay);
   }
 
-  document.getElementById("box").onclick = function () {
-    if (this.style.background === "green") {
-      let reactionTime = new Date().getTime() - startTime;
+  const box = document.getElementById("box");
+
+  function handleClick() {
+    if (box.style.background === "green") {
+      let reactionTime = Date.now() - startTime;
       document.getElementById("result").innerText = "你的反应时间：" + reactionTime + " ms";
       startGame();
     } else {
       document.getElementById("result").innerText = "太快了！等变绿再点！";
     }
-  };
+  }
+
+  // 同时支持鼠标点击和触摸
+  box.addEventListener("click", handleClick);
+  box.addEventListener("touchstart", function (e) {
+    e.preventDefault();
+    handleClick();
+  });
 
   startGame();
 </script>

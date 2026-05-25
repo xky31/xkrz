@@ -1,36 +1,20 @@
 const express = require('express');
+const path = require('path');
 const app = express();
 
+// 提供静态文件（index.html、CSS、JS 等）
+app.use(express.static(path.join(__dirname)));
+
+// 根路径返回 index.html
 app.get('/', (req, res) => {
-  res.send(`
-    <h1>反应力测试</h1>
-    <div id="box" style="width:200px;height:200px;background:red;margin:50px;"></div>
-    <p id="text">点击开始</p>
-
-    <script>
-      let startTime;
-
-      const box = document.getElementById("box");
-      const text = document.getElementById("text");
-
-      box.onclick = () => {
-        if (!startTime) {
-          text.innerText = "等待变绿...";
-          setTimeout(() => {
-            box.style.background = "green";
-            startTime = Date.now();
-          }, Math.random() * 3000);
-        } else {
-          const reaction = (Date.now() - startTime) / 1000;
-          text.innerText = "你的反应时间：" + reaction + "秒";
-          startTime = null;
-          box.style.background = "red";
-        }
-      };
-    </script>
-  `);
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.listen(3000, () => {
-  console.log("打开：http://localhost:3000");
+const PORT = 3000;
+const HOST = '0.0.0.0';
+
+app.listen(PORT, HOST, () => {
+  console.log('服务器已启动');
+  console.log('本机访问：http://localhost:' + PORT);
+  console.log('局域网访问（手机用这个）：http://' + require('os').networkInterfaces()['WLAN']?.find(i => i.family === 'IPv4')?.address + ':' + PORT);
 });
