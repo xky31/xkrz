@@ -5,27 +5,85 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>反应力测试</title>
   <style>
-    * { -webkit-tap-highlight-color: transparent; }
+    * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
     body {
       text-align: center;
       margin: 0;
-      padding-top: 50px;
+      padding: 30px 20px;
       font-family: Arial, sans-serif;
       touch-action: manipulation;
     }
     #box {
       width: 200px;
       height: 200px;
-      background: red;
-      margin: 50px auto;
+      background: #ccc;
+      margin: 30px auto;
       cursor: pointer;
       -webkit-user-select: none;
       user-select: none;
+      border-radius: 12px;
+      display: none;
+    }
+    #box.active {
+      display: block;
+    }
+    #startBtn {
+      padding: 15px 40px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      margin: 30px auto;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    #startBtn:active {
+      background: #0056b3;
+    }
+    #result {
+      font-size: 20px;
+      font-weight: bold;
+      color: #333;
+      min-height: 30px;
+    }
+    #history {
+      margin-top: 30px;
+      text-align: left;
+      max-width: 300px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    #history h3 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    #historyList {
+      list-style: none;
+      padding: 0;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    #historyList li {
+      padding: 8px 12px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+    }
+    #historyList li:nth-child(odd) {
+      background: #f8f9fa;
+    }
+    #avg {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
+      color: #007bff;
     }
     @media (max-width: 480px) {
       #box {
         width: 80vw;
-        height: 40vh;
+        height: 35vh;
       }
     }
   </style>
@@ -35,45 +93,97 @@
 <h1>反应力测试</h1>
 <p>等屏幕变绿后，立刻点击！</p>
 
+<button id="startBtn">开始测试</button>
+
 <div id="box"></div>
 
 <p id="result"></p>
 
+<div id="history">
+  <h3>历史记录</h3>
+  <ul id="historyList"></ul>
+  <p id="avg"></p>
+</div>
+
 <script>
   let startTime;
-
-  function startGame() {
-    document.getElementById("box").style.background = "red";
-    document.getElementById("result").innerText = "准备中...";
-
-    let delay = Math.random() * 3000 + 2000;
-
-    setTimeout(() => {
-      document.getElementById("box").style.background = "green";
-      startTime = Date.now();
-    }, delay);
-  }
+  let isWaiting = false;
+  let history = [];
+  let timeoutId = null;
 
   const box = document.getElementById("box");
+  const startBtn = document.getElementById("startBtn");
+  const result = document.getElementById("result");
+  const historyList = document.getElementById("historyList");
+  const avgEl = document.getElementById("avg");
 
-  function handleClick() {
-    if (box.style.background === "green") {
-      let reactionTime = Date.now() - startTime;
-      document.getElementById("result").innerText = "你的反应时间：" + reactionTime + " ms";
-      startGame();
-    } else {
-      document.getElementById("result").innerText = "太快了！等变绿再点！";
+  function updateHistory() {
+    historyList.innerHTML = "";
+    history.forEach((time, i) => {
+      const li = document.createElement("li");
+      li.innerHTML = `<span>第 ${i + 1} 次</span><span>${time} ms</span>`;
+      historyList.appendChild(li);
+    });
+
+    if (history.length > 0) {
+      const avg = Math.round(history.reduce((a, b) => a + b, 0) / history.length);
+      avgEl.innerText = `平均反应时间：${avg} ms`;
     }
   }
 
-  // 同时支持鼠标点击和触摸
+  function startGame() {
+    startBtn.style.display = "none";
+    box.classList.add("active");
+    box.style.background = "red";
+    result.innerText = "准备中...";
+    result.style.color = "#666";
+    isWaiting = true;
+
+    let delay = Math.random() * 3000 + 2000;
+
+    timeoutId = setTimeout(() => {
+      box.style.background = "green";
+      startTime = Date.now();
+      isWaiting = false;
+    }, delay);
+  }
+
+  function handleClick() {
+    if (!box.classList.contains("active")) return;
+
+    if (isWaiting) {
+      // 点太早了，还没变绿
+      clearTimeout(timeoutId);
+      result.innerText = "太快了！等变绿再点！";
+      result.style.color = "red";
+      box.style.background = "#ccc";
+      box.classList.remove("active");
+      startBtn.style.display = "inline-block";
+      return;
+    }
+
+    if (box.style.background === "green") {
+      let reactionTime = Date.now() - startTime;
+      result.innerText = "你的反应时间：" + reactionTime + " ms";
+      result.style.color = "green";
+
+      history.push(reactionTime);
+      updateHistory();
+
+      // 结束本轮，显示开始按钮
+      box.style.background = "#ccc";
+      box.classList.remove("active");
+      startBtn.style.display = "inline-block";
+      startBtn.innerText = "再来一次";
+    }
+  }
+
+  startBtn.addEventListener("click", startGame);
   box.addEventListener("click", handleClick);
   box.addEventListener("touchstart", function (e) {
     e.preventDefault();
     handleClick();
   });
-
-  startGame();
 </script>
 
 </body>
